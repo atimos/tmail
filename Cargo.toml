@@ -4,5 +4,9 @@ name = "tmail"
 version = "0.0.1"
 authors = ["Alexander Seppälä <alex@timot.se>"]
 
+[[bin]]
+name = "server"
+path = "src/server.rs"
+
 [dependencies.iron]
 git = "https://github.com/iron/iron.git"
