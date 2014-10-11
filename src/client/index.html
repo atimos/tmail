@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf8" />
+		<title>T-mail</title>
+		<style>
+			body, input, button {
+				background: #444;
+				color: #ddd;
+			}
+			input, button {
+				background: #333;
+			}
+		</style>
+	</head>
+	<body>
+		<header>
+			<menu>
+				<menu>
+					<button>New</button>
+				</menu>
+				<input type="text" />
+				<ul>
+					<li>
+					</li>
+				</ul>
+			</menu>
+		</header>
+		<section>
+		</section>
+		<footer>
+		</footer>
+		<script src="/sys/traceur/bin/traceur.js"></script>
+		<script src="/sys/traceur/src/bootstrap.js"></script>
+		<script>
+			traceur.options.experimental = true;
+			window.config = {
+				db: {
+					name: 'mail',
+					version: 3,
+					stores: [
+						{name: 'email', options: {keyPath: 'id', autoIncrement: true}, index: [
+							{name: 'body', unique: true}
+						]},
+						{name: 'content', options: {keyPath: 'id', autoIncrement: true}, index: []}
+					]
+				}
+			};
+		</script>
+		<script type="module" src="js/script.js"></script>
+		<script type="module" src="js/console.js"></script>
+		</body>
+</html>
