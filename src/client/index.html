@@ -4,6 +4,12 @@
 		<meta charset="utf8" />
 		<title>T-mail</title>
 		<style>
+			html { box-sizing: border-box; }
+			*, *:before, *:after { box-sizing: inherit; }
+			menu, body, html {
+				padding: 0;
+				margin: 0;
+			}
 			body, input, button {
 				background: #444;
 				color: #ddd;
@@ -11,19 +17,27 @@
 			input, button {
 				background: #333;
 			}
+			header menu:first-child {
+				padding: 10px;
+			}
+			header menu:first-child input {
+				width: 100%;
+				height: 4em;
+			}
 		</style>
 	</head>
 	<body>
-		<header>
+		<header role="hud">
 			<menu>
-				<menu>
-					<button>New</button>
-				</menu>
 				<input type="text" />
 				<ul>
-					<li>
-					</li>
+					<template>
+					<li data-type="" data-ref="" data-value=""><span></span><span></span></li>
+					</template>
 				</ul>
+			</menu>
+			<menu>
+				<button>New</button>
 			</menu>
 		</header>
 		<section>
@@ -32,22 +46,9 @@
 		</footer>
 		<script src="/sys/traceur/bin/traceur.js"></script>
 		<script src="/sys/traceur/src/bootstrap.js"></script>
-		<script>
-			traceur.options.experimental = true;
-			window.config = {
-				db: {
-					name: 'mail',
-					version: 3,
-					stores: [
-						{name: 'email', options: {keyPath: 'id', autoIncrement: true}, index: [
-							{name: 'body', unique: true}
-						]},
-						{name: 'content', options: {keyPath: 'id', autoIncrement: true}, index: []}
-					]
-				}
-			};
-		</script>
-		<script type="module" src="js/script.js"></script>
-		<script type="module" src="js/console.js"></script>
-		</body>
+		<script>traceur.options.experimental = true;</script>
+		<script src="/lib/lunr.js/lunr.min.js"></script>
+		<script type="module" src="js/hud/hud.js"></script>
+		<script type="module" src="js/store/sync.js"></script>
+	</body>
 </html>

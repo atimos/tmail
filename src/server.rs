@@ -3,9 +3,10 @@ extern crate http;
 
 use std::os;
 use std::io::File;
-use std::io::net::ip::Ipv4Addr;
 use http::headers;
-use iron::{Iron, Request, Response, IronResult};
+use std::io::net::ip::Ipv4Addr;
+use iron::{Iron, Request, Response, IronResult, Set};
+use iron::response::modifiers::{Status, Body};
 use iron::status;
 
 fn file(request: &mut Request) -> IronResult<Response> {
@@ -45,12 +46,13 @@ fn file(request: &mut Request) -> IronResult<Response> {
 
 	match content_path {
 		Some((content, path)) => {
-			let mut response = Response::with(status::Ok, content);
+			let mut response = Response::new().set(Status(status::Ok)).set(Body(content));
 
 			let (type_, subtype) = match path.extension_str() {
 				Some("html") => ("text", "html"),
 				Some("css") => ("text", "css"),
 				Some("js") => ("application", "javascript"),
+				Some("json") => ("application", "json"),
 				_ => ("plain", "text")
 			};
 
@@ -62,7 +64,7 @@ fn file(request: &mut Request) -> IronResult<Response> {
 
 			Ok(response)
 		}
-		_ => { Ok(Response::status(status::NotFound)) }
+		_ => { Ok(Response::new().set(Status(status::NotFound))) }
 	}
 }
 

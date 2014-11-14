@@ -1,0 +1,4 @@
+[submodule "src/client/lib/lunr.js"]
+	path = src/client/lib/lunr.js
+	url = https://github.com/olivernn/lunr.js.git
+	branch = master
