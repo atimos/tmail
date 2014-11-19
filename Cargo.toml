@@ -8,5 +8,8 @@ authors = ["Alexander Seppälä <alex@timot.se>"]
 name = "server"
 path = "src/server.rs"
 
+[dependencies.url]
+git = "https://github.com/servo/rust-url"
+
 [dependencies.iron]
 git = "https://github.com/iron/iron.git"

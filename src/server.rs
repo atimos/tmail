@@ -1,38 +1,39 @@
 extern crate iron;
 extern crate http;
+extern crate url;
 
 use std::os;
 use std::io::File;
-use http::headers;
 use std::io::net::ip::Ipv4Addr;
+use http::headers;
+use url::Url;
 use iron::{Iron, Request, Response, IronResult, Set};
 use iron::response::modifiers::{Status, Body};
 use iron::status;
 
 fn file(request: &mut Request) -> IronResult<Response> {
-	let url = request.url.to_string();
-	let url = url.as_slice();
+	let mut root_path = os::getcwd();
+	root_path.push("src/client");
+	let root_path = root_path;
 
-	let content_path = url.find(':').and_then(|pos| {
-		Some(url.slice_from(pos + 3))
-	}).and_then(|path| {
-		path.find('/').and_then(|pos| {
-			Some(Path::new(path.slice_from(pos + 1)))
-		})
-	}).and_then(|path| {
-		let mut root = os::getcwd();
-		root.push("src/client");
+	let url = Url::parse(request.url.to_string().as_slice()).ok();
 
-		let mut real = root.clone();
+	let content_path = url.and_then(|url| {
+		match url.path() {
+			Some(path_collection) => {
+				let mut path = root_path.clone();
 
-		if path == Path::new(".") {
-			real.push("index.html");
+				for part in path_collection.iter() {
+					path.push(part);
+				}
+
+				Some(path)
+			},
+			_ => None
 		}
-
-		real.push(path);
-
-		if root.is_ancestor_of(&real) {
-			Some(real)
+	}).and_then(|path| {
+		if root_path.is_ancestor_of(&path) {
+			Some(path)
 		} else {
 			None
 		}
