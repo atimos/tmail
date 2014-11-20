@@ -9,7 +9,7 @@ dependencies = [
 [[package]]
 name = "content_type"
 version = "0.1.0"
-source = "git+https://github.com/reem/rust-http-content-type.git#018dddb0277e7982c7f5355ebce50f559064df86"
+source = "git+https://github.com/reem/rust-http-content-type.git#3b315e33515a008fb02be634703ab150a8719826"
 dependencies = [
  "generator 0.1.0 (git+https://github.com/reem/rust-http-content-type.git)",
  "http 0.1.0-pre (git+https://github.com/chris-morgan/rust-http.git)",
@@ -89,7 +89,7 @@ source = "git+https://github.com/alexcrichton/gcc-rs#f25b3ba9c40303781189cc137fb
 [[package]]
 name = "generator"
 version = "0.1.0"
-source = "git+https://github.com/reem/rust-http-content-type.git#018dddb0277e7982c7f5355ebce50f559064df86"
+source = "git+https://github.com/reem/rust-http-content-type.git#3b315e33515a008fb02be634703ab150a8719826"
 dependencies = [
  "http 0.1.0-pre (git+https://github.com/chris-morgan/rust-http.git)",
  "phf_mac 0.0.0 (git+https://github.com/sfackler/rust-phf.git)",
@@ -99,7 +99,7 @@ dependencies = [
 [[package]]
 name = "http"
 version = "0.1.0-pre"
-source = "git+https://github.com/chris-morgan/rust-http.git#54c69daa14ef736535ce7d90e4beb81e7d187bbf"
+source = "git+https://github.com/chris-morgan/rust-http.git#5c1a8de42115d464b4fed157ed7e5f22356f66b9"
 dependencies = [
  "openssl 0.0.1 (git+https://github.com/sfackler/rust-openssl.git)",
  "time 0.0.2 (git+https://github.com/rust-lang/time)",
@@ -109,7 +109,7 @@ dependencies = [
 [[package]]
 name = "iron"
 version = "0.0.1"
-source = "git+https://github.com/iron/iron.git#8ad4e7170fdc8cb0b480ab91d4018eff567e7be0"
+source = "git+https://github.com/iron/iron.git#460e5dac61e4cf5535b9f1ee9a29486fe5269191"
 dependencies = [
  "content_type 0.1.0 (git+https://github.com/reem/rust-http-content-type.git)",
  "error 0.0.0 (git+https://github.com/reem/rust-error.git)",
@@ -136,7 +136,7 @@ source = "git+https://github.com/reem/rust-modifier.git#a53890922929116446758322
 [[package]]
 name = "openssl"
 version = "0.0.1"
-source = "git+https://github.com/sfackler/rust-openssl.git#af5533d936558a77c2de8c5d2d572bb1f89dfada"
+source = "git+https://github.com/sfackler/rust-openssl.git#3e98880fe8cdeaccd3c08e423bc6ce7a211bae0a"
 dependencies = [
  "libressl-pnacl-sys 2.0.0 (git+https://github.com/DiamondLovesYou/libressl-pnacl-sys.git)",
  "openssl-sys 0.0.1 (git+https://github.com/sfackler/rust-openssl.git)",
@@ -145,7 +145,7 @@ dependencies = [
 [[package]]
 name = "openssl-sys"
 version = "0.0.1"
-source = "git+https://github.com/sfackler/rust-openssl.git#af5533d936558a77c2de8c5d2d572bb1f89dfada"
+source = "git+https://github.com/sfackler/rust-openssl.git#3e98880fe8cdeaccd3c08e423bc6ce7a211bae0a"
 dependencies = [
  "pkg-config 0.0.1 (git+https://github.com/alexcrichton/pkg-config-rs)",
 ]
@@ -158,7 +158,7 @@ source = "git+https://github.com/reem/rust-phantom.git#004ee861f7838f1a75db32f37
 [[package]]
 name = "phf"
 version = "0.0.0"
-source = "git+https://github.com/sfackler/rust-phf.git#f6ce09a25c4468b76a48fe4e1070436121084786"
+source = "git+https://github.com/sfackler/rust-phf.git#2f3c6053c2d754974a94aa45a49b8cce10ae88ba"
 dependencies = [
  "xxhash 0.0.1 (git+https://github.com/Jurily/rust-xxhash)",
 ]
@@ -166,8 +166,9 @@ dependencies = [
 [[package]]
 name = "phf_mac"
 version = "0.0.0"
-source = "git+https://github.com/sfackler/rust-phf.git#f6ce09a25c4468b76a48fe4e1070436121084786"
+source = "git+https://github.com/sfackler/rust-phf.git#2f3c6053c2d754974a94aa45a49b8cce10ae88ba"
 dependencies = [
+ "time 0.0.2 (git+https://github.com/rust-lang/time)",
  "xxhash 0.0.1 (git+https://github.com/Jurily/rust-xxhash)",
 ]
 
@@ -206,7 +207,7 @@ source = "git+https://github.com/reem/rust-typeable.git#2f240fb44ce2fcdbb2b89062
 [[package]]
 name = "typemap"
 version = "0.0.0"
-source = "git+https://github.com/reem/rust-typemap.git#baf8ba3bed2d03f0e73044ae5f0c9fc0a0d01814"
+source = "git+https://github.com/reem/rust-typemap.git#4736681d928cf7daa41f1799ef9c25a81811f74b"
 dependencies = [
  "phantom 0.0.1 (git+https://github.com/reem/rust-phantom.git)",
  "unsafe-any 0.1.0 (git+https://github.com/reem/rust-unsafe-any.git)",
@@ -220,7 +221,7 @@ source = "git+https://github.com/reem/rust-unsafe-any.git#2863af363bbd83079b6773
 [[package]]
 name = "url"
 version = "0.1.0"
-source = "git+https://github.com/servo/rust-url#f5fdbe5741ff75d87ef05b468097432c012c3e6e"
+source = "git+https://github.com/servo/rust-url#a7570d763501228b4e00559aba4eb5d6137f56f3"
 dependencies = [
  "encoding 0.2.1 (git+https://github.com/lifthrasiir/rust-encoding)",
 ]
