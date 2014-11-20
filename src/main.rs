@@ -12,9 +12,7 @@ use iron::response::modifiers::{Status, Body};
 use iron::status;
 
 fn file(request: &mut Request) -> IronResult<Response> {
-	let mut root_path = os::getcwd();
-	root_path.push("src/client");
-	let root_path = root_path;
+	let root_path = os::self_exe_path().unwrap().join("client");
 
 	let url = Url::parse(request.url.to_string().as_slice()).ok();
 
