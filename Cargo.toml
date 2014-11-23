@@ -9,8 +9,11 @@ build = "./build.rs"
 name = "server"
 path = "src/main.rs"
 
-[dependencies.url]
-git = "https://github.com/servo/rust-url"
+[dependencies]
+conduit-mime-types = "~0.5"
 
-[dependencies.iron]
-git = "https://github.com/iron/iron.git"
+[dependencies.http]
+git = "https://github.com/chris-morgan/rust-http.git"
+
+[dependencies.time]
+git = "https://github.com/rust-lang/time.git"
