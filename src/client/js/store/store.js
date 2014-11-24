@@ -1,6 +1,6 @@
 'use strict';
 
-import store from 'lib/libjs/db/store';
+import store from 'lib/libweb/db/store';
 
 let cfg = {
 	name: 'store',

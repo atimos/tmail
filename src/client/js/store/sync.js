@@ -17,7 +17,7 @@ function contacts() {
 				name: 'Alexander Seppälä'
 			});
 
-			add_items('contact', result.target.response.slice(0, 10));
+			add_items('contact', result.target.response);
 		});
 
 		contact_req.send();

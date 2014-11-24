@@ -2,6 +2,8 @@
 <html>
 	<head>
 		<meta charset="utf8" />
+		<script src="/sys/polymer/components/platform/platform.js"></script>
+		<link rel="import" href="/lib/libweb/elements/datalist/datalist.html" />
 		<title>T-mail</title>
 		<style>
 			html { box-sizing: border-box; }
@@ -24,17 +26,20 @@
 				width: 100%;
 				height: 4em;
 			}
+			.selected {
+				border: 1px solid #fff;
+			}
 		</style>
 	</head>
 	<body>
 		<header role="hud">
 			<menu>
 				<input type="text" />
-				<ul>
+				<tt-datalist target="header menu:first-child input">
 					<template>
-					<li data-type="" data-ref="" data-value=""><span></span><span></span></li>
+						<li><span></span><span></span></li>
 					</template>
-				</ul>
+				</tt-datalist>
 			</menu>
 			<menu>
 				<button>New</button>
@@ -48,7 +53,7 @@
 		<script src="/sys/traceur/src/bootstrap.js"></script>
 		<script>traceur.options.experimental = true;</script>
 		<script src="/lib/lunr.js/lunr.min.js"></script>
-		<script type="module" src="js/hud/hud.js"></script>
+		<script type="module" src="js/cmd/cmd.js"></script>
 		<script type="module" src="js/store/sync.js"></script>
 	</body>
 </html>
