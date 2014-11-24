@@ -1,8 +1,8 @@
 'use strict';
 
-import * as parser from 'js/cmd/parser';
-import * as store from 'js/cmd/store';
-import * as view from 'js/cmd/view';
+import * as parser from 'js/cli/parser';
+import * as store from 'js/cli/store';
+import * as view from 'js/cli/view';
 
 let input = document.querySelector('header menu:first-child input'),
 	sugestions = input.nextElementSibling;
