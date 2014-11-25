@@ -59,9 +59,7 @@ impl TmailServer {
 				Some(path_collection) => {
 					let mut path = self.root.clone();
 
-					for part in path_collection.iter() {
-						path.push(part);
-					}
+					path.push_many(path_collection);
 
 					if self.root.is_ancestor_of(&path) && path.is_file() {
 						Some(path)
