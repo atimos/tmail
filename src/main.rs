@@ -57,9 +57,7 @@ impl TmailServer {
 		url.and_then(|url| {
 			match url.path() {
 				Some(path_collection) => {
-					let mut path = self.root.clone();
-
-					path.push_many(path_collection);
+					let path = self.root.clone().join_many(path_collection);
 
 					if self.root.is_ancestor_of(&path) && path.is_file() {
 						Some(path)
