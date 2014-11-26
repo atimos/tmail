@@ -2,3 +2,7 @@
 	path = src/client/lib/lunr.js
 	url = https://github.com/olivernn/lunr.js.git
 	branch = master
+[submodule "utils/traceur"]
+	path = utils/traceur
+	url = https://github.com/google/traceur-compiler.git
+	branch = master

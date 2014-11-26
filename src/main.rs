@@ -5,10 +5,9 @@ extern crate "conduit-mime-types" as mime;
 
 
 use std::os;
-use std::io::fs::PathExtensions;
+use std::io::fs::{rename, PathExtensions};
 use std::io::net::ip::{SocketAddr, Ipv4Addr};
-use std::io::Writer;
-use std::io::File;
+use std::io::{Writer, File, Command};
 
 use url::Url;
 
@@ -60,11 +59,14 @@ impl TmailServer {
 					let path = self.root.clone().join_many(path_collection);
 
 					if self.root.is_ancestor_of(&path) && path.is_file() {
-						Some(path)
+						if url.query == Some("es6".to_string()) {
+							Some(compile_js(&self.root, path.clone()))
+						} else {
+							Some(path)
+						}
 					} else {
 						None
 					}
-
 				},
 				_ => None
 			}
@@ -97,6 +99,7 @@ impl Server for TmailServer {
 	}
 
 	fn handle_request(&self, r: Request, w: &mut ResponseWriter) {
+
 		let path = self.get_real_path(r.headers.host.clone(), r.request_uri);
 
 		w.headers.content_type = self.get_mime(&path);
@@ -105,15 +108,15 @@ impl Server for TmailServer {
 
 		match path {
 			Some(path) => {
-					match File::open(&path).read_to_end() {
-						Ok(content) => {
-							w.write(content.as_slice()).unwrap();
-						}
-						Err(_) => {
-							w.status = NotFound;
-							w.write(b"Page not found").unwrap();
-						}
+				match File::open(&path).read_to_end() {
+					Ok(content) => {
+						w.write(content.as_slice()).unwrap();
 					}
+					Err(_) => {
+						w.status = NotFound;
+						w.write(b"Page not found").unwrap();
+					}
+				}
 			}
 			_ => {
 				w.status = NotFound;
@@ -123,6 +126,32 @@ impl Server for TmailServer {
 	}
 }
 
+fn compile_js(root: &Path, path: Path) -> Path {
+	let path_traceur = root.join("../utils/traceur/traceur");
+	let root_es6 = root.join("../es6");
+
+	path.path_relative_from(&root_es6).and_then(|path| {
+		let file_name = std::str::replace(path.as_str().unwrap().slice_from(3), "/", "_");
+		Some(root_es6.join(file_name))
+	}).and_then(|path_compiled| {
+		let compile_result = Command::new(path_traceur.as_str().unwrap())
+			.arg("--experimental")
+			.args(&["--modules", "inline"])
+			.args(&["--out", root.join(path_compiled.filename_str().unwrap()).as_str().unwrap()])
+			.arg(path.as_str().unwrap())
+			.status();
+
+		match compile_result {
+			Ok(code) if code.success() => {
+				rename(&root.join(path_compiled.filename_str().unwrap()), &path_compiled).unwrap();
+				Some(path_compiled)
+			}
+			_ => {
+				None
+			}
+		}
+	}).or(Some(path)).unwrap()
+}
 
 fn main() {
 	let server = TmailServer {
