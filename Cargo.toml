@@ -11,9 +11,4 @@ path = "src/main.rs"
 
 [dependencies]
 conduit-mime-types = "~0.5"
-
-[dependencies.http]
-git = "https://github.com/chris-morgan/rust-http.git"
-
-[dependencies.time]
-git = "https://github.com/rust-lang/time.git"
+iron = "~0.0"

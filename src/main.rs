@@ -1,164 +1,63 @@
-extern crate time;
-extern crate http;
+#![feature(globs)]
+extern crate iron;
+extern crate hyper;
 extern crate url;
 extern crate "conduit-mime-types" as mime;
 
+use requestpath::{RequestPath, RequestPathHandler};
 
 use std::os;
-use std::io::fs::{rename, PathExtensions};
-use std::io::net::ip::{SocketAddr, Ipv4Addr};
-use std::io::{Writer, File, Command};
+use std::io::File;
 
-use url::Url;
+use iron::prelude::*;
+use iron::ChainBuilder;
+use iron::response::modifiers::{Status, Body, ContentType};
+use iron::status;
 
 use mime::Types;
 
-use http::server::request::{AbsoluteUri, AbsolutePath};
-use http::server::{Config, Server, Request, ResponseWriter};
-use http::headers::content_type::MediaType;
-use http::status::NotFound;
+mod requestpath;
+mod jshandler;
 
-#[deriving(Clone)]
-struct TmailServer {
-	ip: std::io::net::ip::IpAddr,
-	port: u16,
-	root: Path,
-	mime: std::sync::Arc<Types>
-}
+fn tmail(req: &mut Request) -> IronResult<Response> {
+	let path = req.extensions.get::<RequestPath, RequestPath>().unwrap();
+	let status;
 
-impl TmailServer {
-	fn get_real_path(&self, host: Option<http::headers::host::Host>, uri: http::server::request::RequestUri) -> Option<Path> {
-		let url = match uri {
-			AbsolutePath(ref path) => {
-				let uri = host.and_then(|host| {
-					let mut uri = "http://".to_string();
-
-					uri.push_str(host.to_string().as_slice());
-					uri.push_str(path.as_slice());
-
-					Some(uri.as_slice().clone())
-				});
-
-				match uri {
-					Some(uri) => {
-						Url::parse(uri.as_slice()).ok()
-					},
-					_ => { None }
-				}
-
-			}
-			AbsoluteUri(uri) => {
-				Some(uri)
-			}
-			_ => { None }
-		};
-
-		url.and_then(|url| {
-			match url.path() {
-				Some(path_collection) => {
-					let path = self.root.clone().join_many(path_collection);
-
-					if self.root.is_ancestor_of(&path) && path.is_file() {
-						if url.query == Some("es6".to_string()) {
-							Some(compile_js(&self.root, path.clone()))
-						} else {
-							Some(path)
-						}
-					} else {
-						None
-					}
+	let body = match path.exist {
+		true => {
+			match File::open(&path.path).read_to_string() {
+				Ok(content) => {
+					status = status::Ok;
+					content
 				},
-				_ => None
-			}
-		})
-	}
-
-	fn get_mime(&self, path: &Option<Path>) -> Option<MediaType> {
-		let mime_str = match path {
-			&Some(ref path) => {
-				self.mime.mime_for_path(path)
-			},
-			&None => {
-				"text/plain"
-			}
-		};
-
-		let mut mime_iter = mime_str.split('/');
-
-		Some(MediaType {
-			type_: mime_iter.next().unwrap().to_string(),
-			subtype: mime_iter.next().unwrap().to_string(),
-			parameters: vec!(("charset".to_string(), "UTF-8".to_string()))
-		})
-	}
-}
-
-impl Server for TmailServer {
-	fn get_config(&self) -> Config {
-		Config { bind_address: SocketAddr { ip: self.ip, port: self.port } }
-	}
-
-	fn handle_request(&self, r: Request, w: &mut ResponseWriter) {
-
-		let path = self.get_real_path(r.headers.host.clone(), r.request_uri);
-
-		w.headers.content_type = self.get_mime(&path);
-
-		w.headers.date = Some(time::now_utc());
-
-		match path {
-			Some(path) => {
-				match File::open(&path).read_to_end() {
-					Ok(content) => {
-						w.write(content.as_slice()).unwrap();
-					}
-					Err(_) => {
-						w.status = NotFound;
-						w.write(b"Page not found").unwrap();
-					}
+				Err(err) => {
+					status = status::InternalServerError;
+					err.desc.to_string()
 				}
 			}
-			_ => {
-				w.status = NotFound;
-				w.write(b"Page not found").unwrap();
-			}
 		}
-	}
-}
-
-fn compile_js(root: &Path, path: Path) -> Path {
-	let path_traceur = root.join("../utils/traceur/traceur");
-	let root_es6 = root.join("../es6");
-
-	path.path_relative_from(&root_es6).and_then(|path| {
-		let file_name = std::str::replace(path.as_str().unwrap().slice_from(3), "/", "_");
-		Some(root_es6.join(file_name))
-	}).and_then(|path_compiled| {
-		let compile_result = Command::new(path_traceur.as_str().unwrap())
-			.arg("--experimental")
-			.args(&["--modules", "inline"])
-			.args(&["--out", root.join(path_compiled.filename_str().unwrap()).as_str().unwrap()])
-			.arg(path.as_str().unwrap())
-			.status();
-
-		match compile_result {
-			Ok(code) if code.success() => {
-				rename(&root.join(path_compiled.filename_str().unwrap()), &path_compiled).unwrap();
-				Some(path_compiled)
-			}
-			_ => {
-				None
-			}
+		false => {
+			status = status::NotFound;
+			"Page not found".to_string()
 		}
-	}).or(Some(path)).unwrap()
+	};
+
+	Ok(Response::new()
+		.set(Status(status))
+		.set(Body(body.as_slice()))
+		.set(ContentType(path.mime.clone().unwrap())))
 }
 
 fn main() {
-	let server = TmailServer {
-		port: 3000,
-		ip: Ipv4Addr(127, 0, 0, 1),
-		root: os::self_exe_path().unwrap().join("client"),
-		mime: std::sync::Arc::new(Types::new().unwrap())
-	};
-	server.serve_forever();
+	let mut chain = ChainBuilder::new(tmail);
+	chain.link_before(RequestPathHandler {
+		mime: std::sync::Arc::new(Types::new().unwrap()),
+		root: os::self_exe_path().unwrap().join("client")
+	});
+	chain.link_before(jshandler::JsHandler {
+		source_root: os::self_exe_path().unwrap().join("client"),
+		compile_root: os::self_exe_path().unwrap().join("es6"),
+		compiler: os::self_exe_path().unwrap().join("../utils/es6-transpiler/es6-transpiler.js")
+	});
+	Iron::new(chain).listen("localhost:3000").unwrap();
 }
