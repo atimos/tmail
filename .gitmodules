@@ -2,7 +2,11 @@
 	path = src/client/lib/lunr.js
 	url = https://github.com/olivernn/lunr.js.git
 	branch = master
-[submodule "utils/traceur"]
-	path = utils/traceur
-	url = https://github.com/google/traceur-compiler.git
+[submodule "utils/es6-shim"]
+	path = utils/es6-shim
+	url = https://github.com/paulmillr/es6-shim.git
+	branch = master
+[submodule "utils/requirejs"]
+	path = utils/requirejs
+	url = https://github.com/jrburke/requirejs.git
 	branch = master

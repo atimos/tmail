@@ -1,12 +1,13 @@
-use std::io::Command;
+use std::io;
+use std::io::{Command, fs};
 use std::os;
 
 fn main() {
-    let src = Path::new(os::getenv("CARGO_MANIFEST_DIR").unwrap()).join("src/client");
-    let out = Path::new(os::getenv("OUT_DIR").unwrap()).join("../../../client");
-    println!("{} - {}", src.display(),out.display());
+    let root = Path::new(os::getenv("CARGO_MANIFEST_DIR").unwrap());
+    let out = Path::new(os::getenv("OUT_DIR").unwrap()).join("../../../");
 
-    Command::new("ln").args(&["-s", src.as_str().unwrap(), out.as_str().unwrap()]).status().unwrap();
+    fs::mkdir_recursive(&out.join("es6"), io::USER_RWX).unwrap();
+
+    Command::new("ln").args(&["-s", root.join("src/client").as_str().unwrap(), out.as_str().unwrap()]).status().unwrap();
+    Command::new("ln").args(&["-s", root.join("utils").as_str().unwrap(), out.as_str().unwrap()]).status().unwrap();
 }
-
-

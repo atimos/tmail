@@ -56,8 +56,8 @@ fn main() {
 	});
 	chain.link_before(jshandler::JsHandler {
 		source_root: os::self_exe_path().unwrap().join("client"),
-		compile_root: os::self_exe_path().unwrap().join("es6"),
-		compiler: os::self_exe_path().unwrap().join("../utils/es6-transpiler/es6-transpiler.js")
+		transpile_root: os::self_exe_path().unwrap().join("es6"),
+		transpiler: os::self_exe_path().unwrap().join("../utils/transpiler/transpiler.js")
 	});
 	Iron::new(chain).listen("localhost:3000").unwrap();
 }

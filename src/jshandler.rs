@@ -11,16 +11,16 @@ use requestpath::{RequestPath};
 
 pub struct JsHandler {
 	pub source_root: Path,
-	pub compile_root: Path,
-	pub compiler: Path
+	pub transpile_root: Path,
+	pub transpiler: Path
 }
 
 impl JsHandler {
-	fn is_modified(&self, source: &Path, compiled: &Path) -> bool {
-		compiled.stat().map(|compiled_stat| {
+	fn is_modified(&self, source: &Path, transpiled: &Path) -> bool {
+		transpiled.stat().map(|transpiled_stat| {
 			match source.stat() {
 				Ok(source_stat) => {
-					compiled_stat.modified <= source_stat.modified
+					transpiled_stat.modified < source_stat.modified
 				}
 				Err(_) if source.filename() == Some(b"runtime.js") => {
 					false
@@ -30,43 +30,52 @@ impl JsHandler {
 		}).unwrap_or(true)
 	}
 
-	fn compile(&self, source: &Path, compiled: &Path) {
-		Command::new(&self.compiler.as_str().unwrap())
+	fn transpile(&self, source: &Path, transpiled: &Path) {
+		Command::new(&self.transpiler.as_str().unwrap())
 			.arg(self.source_root.as_str().unwrap())
-			.arg(source.as_str().unwrap())
-			.arg(compiled.as_str().unwrap())
+			.arg(source.path_relative_from(&self.source_root).unwrap().as_str().unwrap())
+			.arg(transpiled.as_str().unwrap())
 			.output().unwrap();
 	}
 
-	fn get_compiled_path(&self, path: Path) -> Path {
+	fn get_transpiled_path(&self, path: &Path) -> Path {
 		let relative_path = path.path_relative_from(&self.source_root).unwrap();
-		let compile_path = self.compile_root.join(relative_path.as_str().unwrap().to_string().replace("/", "_"));
-
-		if self.is_modified(&path, &compile_path) {
-			self.compile(&relative_path, &compile_path);
-		}
-		compile_path
+		let transpile_path = self.transpile_root.join(relative_path.as_str().unwrap().to_string().replace("/", "_"));
+		transpile_path
 	}
 }
 
 impl BeforeMiddleware for JsHandler {
 	fn before(&self, req: &mut Request) -> IronResult<()> {
-		let path;
-		{
-			path = req.extensions.get::<RequestPath, RequestPath>().unwrap().clone();
-		}
+		let path = req.extensions.get::<RequestPath, RequestPath>().unwrap().clone();
 
-		if path.mime.is_some() {
-			let Mime(_, sub, _) = path.mime.clone().unwrap();
+		if path.child_of_root {
+			if path.path.extension() == Some(b"map") && path.child_of_root {
+				req.extensions.insert::<RequestPath, RequestPath>(RequestPath {
+					mime: path.mime.clone(),
+					exist: true,
+					child_of_root: path.child_of_root,
+					path: self.get_transpiled_path(&path.path).with_extension("map")
+				});
+			} else {
+				match path.mime.clone() {
+					Some(Mime(_, ref sub, _)) if sub == &Javascript => {
+						if path.exist || path.path.filename() == Some(b"runtime.js") {
+							let transpiled_path = self.get_transpiled_path(&path.path);
 
-			if path.child_of_root && sub == Javascript && !path.path.filename_str().unwrap().contains("min.js") {
-				if path.exist || path.path.filename() == Some(b"runtime.js") {
-					req.extensions.insert::<RequestPath, RequestPath>(RequestPath {
-						mime: path.mime.clone(),
-						exist: true,
-						child_of_root: path.child_of_root,
-						path: self.get_compiled_path(path.path.clone())
-					});
+							if self.is_modified(&path.path, &transpiled_path) {
+								self.transpile(&path.path, &transpiled_path);
+							}
+
+							req.extensions.insert::<RequestPath, RequestPath>(RequestPath {
+								mime: path.mime.clone(),
+								exist: true,
+								child_of_root: path.child_of_root,
+								path: transpiled_path
+							});
+						}
+					}
+					_ => {}
 				}
 			}
 		}
