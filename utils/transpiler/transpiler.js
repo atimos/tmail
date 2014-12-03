@@ -28,8 +28,13 @@ if ( process.argv[3] === 'js/runtime.js' ) {
 		environments: ['browser'],
 		includePolyfills: false,
 		globals: {
-			"define": true,
+			define: true,
 		},
 	});
-	console.log(test.getFullLib());
+	fs.readFile(process.argv[4], function(err, content) {
+		content = content.toString().replace(/\/\/# sourceMappingURL=.*/, function() {
+			return '//# sourceMappingURL=/' + process.argv[3] + '.map';
+		});
+		fs.writeFile(process.argv[4], content);
+	});
 }

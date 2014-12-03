@@ -51,11 +51,12 @@ impl BeforeMiddleware for JsHandler {
 
 		if path.child_of_root {
 			if path.path.extension() == Some(b"map") && path.child_of_root {
+				let transpiled_path = self.get_transpiled_path(&path.path).with_extension("map");
 				req.extensions.insert::<RequestPath, RequestPath>(RequestPath {
-					mime: path.mime.clone(),
-					exist: true,
+					mime: from_str("application/javascript;charset=utf8"),
+					exist: transpiled_path.is_file(),
 					child_of_root: path.child_of_root,
-					path: self.get_transpiled_path(&path.path).with_extension("map")
+					path: transpiled_path
 				});
 			} else {
 				match path.mime.clone() {
