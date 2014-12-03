@@ -22,7 +22,7 @@ if ( process.argv[3] === 'js/runtime.js' ) {
 	container.getModule(process.argv[3]);
 	container.write(process.argv[4]);
 
-	var test = es6tr.run({
+	es6tr.run({
 		filename: process.argv[4],
 		outputFilename: process.argv[4],
 		environments: ['browser'],
@@ -31,6 +31,7 @@ if ( process.argv[3] === 'js/runtime.js' ) {
 			define: true,
 		},
 	});
+
 	fs.readFile(process.argv[4], function(err, content) {
 		content = content.toString().replace(/\/\/# sourceMappingURL=.*/, function() {
 			return '//# sourceMappingURL=/' + process.argv[3] + '.map';
