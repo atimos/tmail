@@ -11,6 +11,8 @@ var FileResolver = transpiler.FileResolver;
 
 if ( process.argv[3] === 'js/runtime.js' ) {
 	fs.createReadStream(__dirname + '/../requirejs/require.js').pipe(fs.createWriteStream(process.argv[4]));
+} else if ( process.argv[3].indexOf('.min.js') > -1 ) {
+	fs.createReadStream(process.argv[2] + '/' + process.argv[3]).pipe(fs.createWriteStream(process.argv[4]));
 } else {
 	var container = new Container({
 		resolvers: [new FileResolver([process.argv[2]])],
