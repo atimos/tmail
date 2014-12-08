@@ -1,6 +1,7 @@
 'use strict';
 
 import store from 'lib/libweb/db/store';
+import lunr from 'js/lunr.min';
 
 let cfg = {
 	name: 'store',
@@ -27,7 +28,7 @@ export var index = {};
 
 cfg.stores.forEach(cfg => {
 	if ( Array.isArray(cfg.fulltext) ) {
-		index[cfg.name] = window.lunr(function () {
+		index[cfg.name] = lunr(function () {
 			cfg.fulltext.forEach(field => {
 				this.field(field);
 			});

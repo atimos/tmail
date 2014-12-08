@@ -27,7 +27,7 @@ function cmd_to_string(cmd) {
 				cursor += arg.value.length;
 
 				if ( index < args.length - 1 ) {
-					cursor += 2;
+					cursor += 1;
 				}
 			}
 
@@ -36,7 +36,7 @@ function cmd_to_string(cmd) {
 			}
 
 			return arg.value;
-		}).join(', ');
+		}).join(' ');
 	}).join(' ');
 	return [string, cursor];
 }

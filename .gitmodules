@@ -1,16 +1,8 @@
-[submodule "src/client/lib/lunr.js"]
-	path = src/client/lib/lunr.js
+[submodule "client/lib/lunr.js"]
+	path = client/lib/lunr.js
 	url = https://github.com/olivernn/lunr.js.git
 	branch = master
-[submodule "utils/es6-shim"]
-	path = utils/es6-shim
-	url = https://github.com/paulmillr/es6-shim.git
-	branch = master
-[submodule "utils/requirejs"]
-	path = utils/requirejs
-	url = https://github.com/jrburke/requirejs.git
-	branch = master
-[submodule "src/client/lib/libweb"]
-	path = src/client/lib/libweb
+[submodule "client/lib/libweb"]
+	path = client/lib/libweb
 	url = git@github.com:timot/libweb.git
 	branch = master

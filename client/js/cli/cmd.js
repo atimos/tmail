@@ -124,7 +124,7 @@ function get_args(cfg, input, start_pos, end_pos, cursor_pos) {
 		}
 	} else if ( cursor_pos > start_pos && cursor_pos <= end_pos ) {
 		let arg_end = start_pos, found_cursor = false;
-		args = input.split(',').map(item => {
+		args = input.split(' ').map(item => {
 			let has_cursor = false;
 
 			arg_end += item.length + 1;

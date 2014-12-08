@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="utf8" />
-		<script src="/sys/polymer/components/platform/platform.js"></script>
+		<script src="/js/runtime.js"></script>
 		<link rel="import" href="/lib/libweb/elements/datalist/datalist.html" />
+		<link rel="import" href="/lib/libweb/elements/table/table.html" />
+		<meta charset="utf8" />
 		<title>T-mail</title>
 		<style>
 			html { box-sizing: border-box; }
@@ -19,10 +20,11 @@
 			input, button {
 				background: #333;
 			}
-			header menu:first-child {
+
+			body > header menu:first-child {
 				padding: 10px;
 			}
-			header menu:first-child input {
+			body > header menu:first-child input {
 				width: 100%;
 				height: 4em;
 			}
@@ -46,14 +48,23 @@
 			</menu>
 		</header>
 		<section>
+			<article>
+				<header>
+					<menu>
+						<label>From:</label><div contenteditable="true">from</div>
+						<div contenteditable="true">to</div>
+						<div contenteditable="true">cc</div>
+						<div contenteditable="true">bcc</div>
+						<div contenteditable="true">subject</div>
+					</menu>
+				</header>
+			</article>
+			<article>
+				<tt-table></tt-table>
+			</article>
 		</section>
 		<footer>
 		</footer>
-		<script src="/sys/traceur/bin/traceur.js"></script>
-		<script src="/sys/traceur/src/bootstrap.js"></script>
-		<script>traceur.options.experimental = true;</script>
-		<script src="/lib/lunr.js/lunr.min.js"></script>
-		<script type="module" src="js/cli/cli.js"></script>
-		<script type="module" src="js/store/sync.js"></script>
+		<script>require(['js/script']);</script>
 	</body>
 </html>
