@@ -2,8 +2,8 @@
 <html>
 	<head>
 		<script src="/js/runtime.js"></script>
+		<link rel="import" href="/elements/cli/cli.html" />
 		<link rel="import" href="/lib/libweb/elements/datalist/datalist.html" />
-		<link rel="import" href="/lib/libweb/elements/table/table.html" />
 		<meta charset="utf8" />
 		<title>T-mail</title>
 		<style>
@@ -31,17 +31,22 @@
 			.selected {
 				border: 1px solid #fff;
 			}
+			tmail-cli {
+				box-sizing: border-box;
+				padding: 0.5em;
+				display: inline-block;
+				width: 100%;
+				min-height: 1em;
+				outline: 0;
+				border: 2px solid;
+			}
 		</style>
 	</head>
 	<body>
 		<header role="hud">
 			<menu>
-				<input type="text" />
-				<tt-datalist target="header menu:first-child input">
-					<template>
-						<li><span></span><span></span></li>
-					</template>
-				</tt-datalist>
+				<tmail-cli></tmail-cli>
+				<tt-datalist target="tmail-cli"></tt-datalist>
 			</menu>
 			<menu>
 				<button>New</button>
