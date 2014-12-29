@@ -1,7 +1,3 @@
-[submodule "client/lib/lunr.js"]
-	path = client/lib/lunr.js
-	url = https://github.com/olivernn/lunr.js.git
-	branch = master
 [submodule "client/lib/libweb"]
 	path = client/lib/libweb
 	url = git@github.com:timot/libweb.git
