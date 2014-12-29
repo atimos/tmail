@@ -42,7 +42,7 @@ export function get_command(input, cursor_pos) {
 		return cmd_group_list.filter(cmd_group_cfg => {
 			return (input.indexOf(cmd_group_cfg.name) === 0);
 		}).map(cmd_cfg => {
-			let current_cmd = null, current_arg = null;
+			let current_cmd = null, current_arg = null, last_cmd_index = cmd_cfg.cmd_list.length - 1;
 
 			let cmd_list = cmd_cfg.cmd_list.map(cfg => {
 				let start = input.indexOf(cfg.name + ' ');
@@ -54,8 +54,12 @@ export function get_command(input, cursor_pos) {
 				return cmd !== undefined;
 			}).sort((a, b) => {
 				return a.start - b.start;
-			}).filter((cmd, index, list) => {
-				return ( index === 0 || list[index - 1].last_cmd !== true );
+			}).filter((cmd, index) => {
+				if ( index < last_cmd_index && cmd.last_cmd === true ) {
+					last_cmd_index = index;
+				}
+
+				return index <= last_cmd_index;
 			}).map((cmd, index, list) => {
 				let result, start = cmd.start + (cmd.name + ' ').length,
 				end = (index === list.length - 1 ? input.length : list[index + 1].start),
