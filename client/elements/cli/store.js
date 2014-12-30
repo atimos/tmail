@@ -2,7 +2,7 @@
 
 import {get_instance as get_db_instance} from '../../js/store';
 
-let _hidden_data = '_hidden_data_', command_list = [];
+let _hdata = '_hdata_';
 
 export function get_sugestions(store_list, query) {
 	return get_db_instance().then(db => {
@@ -33,14 +33,8 @@ export function get_sugestions(store_list, query) {
 }
 
 export function get_command(input, cursor_pos) {
-	return new Promise((resolve, reject) => {
-		if ( command_list.length > 0 ) {
-			resolve(command_list);
-		} else {
-			get_db_instance().then(db => {
-				db.store('command').range().then(resolve, reject);
-			});
-		}
+	return get_db_instance().then(db => {
+		return db.store('command').range();
 	}).then(cmd_group_list => {
 		return cmd_group_list.filter(cmd_group_cfg => {
 			return (input.indexOf(cmd_group_cfg.name) === 0);
@@ -64,9 +58,9 @@ export function get_command(input, cursor_pos) {
 
 				return index <= last_cmd_index;
 			}).map((cmd, index, list) => {
-				let result, start = cmd.start + (cmd.name + ' ').length,
-				end = (index === list.length - 1 ? input.length : list[index + 1].start),
-				args = input.slice(start, end);
+				let start = cmd.start + (cmd.name + ' ').length,
+					end = (index === list.length - 1 ? input.length : list[index + 1].start),
+					args = input.slice(start, end);
 
 				if ( cmd.split_args !== undefined && cmd.split_args !== false ) {
 					let arg_start = start;
@@ -93,17 +87,14 @@ export function get_command(input, cursor_pos) {
 					}];
 				}
 
-				result = {
+				return {
 					name: cmd.name,
 					args: cmd.args,
-					sugestions: (Array.isArray(cmd.sugestions)? cmd.sugestions : null)
+					sugestions: (Array.isArray(cmd.sugestions)? cmd.sugestions : null),
+					[_hdata]: {
+						split_args: cmd.split_args || false
+					}
 				};
-
-				result[_hidden_data] = {
-					split_args: cmd.split_args || false
-				};
-
-				return result;
 			});
 
 			return {
@@ -134,16 +125,16 @@ export function update_input(input, new_value) {
 						new_input += arg.value;
 					}
 
-					if ( cmd[_hidden_data].split_args && arg.value.length > 0 ) {
-						new_input += cmd[_hidden_data].split_args;
+					if ( cmd[_hdata].split_args && arg.value.length > 0 ) {
+						new_input += cmd[_hdata].split_args;
 						new_input += ' ';
 					}
 
 					return new_input;
 				}, new_input + cmd.name + ' ');
 
-				if ( cmd.args.length > 0 && cmd[_hidden_data].split_args ) {
-					new_input = new_input.slice(0, -(cmd[_hidden_data].split_args.length + 1));
+				if ( cmd.args.length > 0 && cmd[_hdata].split_args ) {
+					new_input = new_input.slice(0, -(cmd[_hdata].split_args.length + 1));
 				}
 
 				return new_input + ' ';
