@@ -34,7 +34,9 @@ export function get_sugestions(store_list, query) {
 
 export function get_command(input, cursor_pos) {
 	return get_db_instance().then(db => {
-		return db.store('command').range();
+		return new Promise((resolve, reject) => {
+			return db.store('command').range().then(resolve, reject);
+		});
 	}).then(cmd_group_list => {
 		return cmd_group_list.filter(cmd_group_cfg => {
 			return (input.indexOf(cmd_group_cfg.name) === 0);
