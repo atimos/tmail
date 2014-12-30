@@ -7,7 +7,12 @@ let _hidden_data = '_hidden_data_', command_list = [];
 export function get_sugestions(store_list, query) {
 	return get_db_instance().then(db => {
 		return Promise.all(store_list.map(store_name => {
-			return db.store(store_name).search(query);
+			return db.store(store_name).search(query).then(result => {
+				return result.map(item => {
+					item.template = store_name;
+					return item;
+				});
+			});
 		}));
 	}).then(result_list => {
 		return result_list.reduce((result_list, result) => {
@@ -23,9 +28,7 @@ export function get_sugestions(store_list, query) {
 			} else {
 				return 0;
 			}
-		}).slice(0, 10).map(item => {
-			return item.value;
-		});
+		}).slice(0, 10);
 	});
 }
 
@@ -42,7 +45,7 @@ export function get_command(input, cursor_pos) {
 		return cmd_group_list.filter(cmd_group_cfg => {
 			return (input.indexOf(cmd_group_cfg.name) === 0);
 		}).map(cmd_cfg => {
-			let current_cmd = null, current_arg = null, last_cmd_index = cmd_cfg.cmd_list.length - 1;
+			let focused_cmd = null, focused_arg = null, last_cmd_index = cmd_cfg.cmd_list.length - 1;
 
 			let cmd_list = cmd_cfg.cmd_list.map(cfg => {
 				let start = input.indexOf(cfg.name + ' ');
@@ -69,24 +72,24 @@ export function get_command(input, cursor_pos) {
 					let arg_start = start;
 
 					cmd.args = args.split(cmd.split_args).map(arg => {
-						let current = (cursor_pos >= arg_start && cursor_pos <= arg_start + arg.length);
+						let focused = (cursor_pos >= arg_start && cursor_pos <= arg_start + arg.length);
 
-						if ( current ) {
-							current_cmd = cmd;
-							current_arg = arg;
+						if ( focused ) {
+							focused_cmd = cmd;
+							focused_arg = arg;
 						}
 
 						arg_start += arg.length + cmd.split_args.length;
 
 						return {
 							value: arg.trim(),
-							current: current
+							focused: focused
 						};
 					});
 				} else {
 					cmd.args = [{
 						value: args.trim(),
-						current: (cursor_pos >= start && cursor_pos <= end)
+						focused: (cursor_pos >= start && cursor_pos <= end)
 					}];
 				}
 
@@ -106,8 +109,10 @@ export function get_command(input, cursor_pos) {
 			return {
 				name: cmd_cfg.name,
 				list: cmd_list,
-				cmd: current_cmd,
-				arg: current_arg
+				focused: {
+					cmd: focused_cmd,
+					arg: focused_arg
+				}
 			};
 		});
 	}).then(cmd_list => {
@@ -122,18 +127,16 @@ export function update_input(input, new_value) {
 
 			input.value = cmd.list.reduce((new_input, cmd) => {
 				new_input = cmd.args.reduce((new_input, arg) => {
-					if ( arg.current === true ) {
+					if ( arg.focused === true ) {
 						new_input += new_value;
 						cursor_pos = new_input.length + new_value.length;
 					} else {
 						new_input += arg.value;
 					}
 
-					if ( cmd[_hidden_data].split_args ) {
+					if ( cmd[_hidden_data].split_args && arg.value.length > 0 ) {
 						new_input += cmd[_hidden_data].split_args;
-						if ( arg.value.length > 0 ) {
-							new_input += ' ';
-						}
+						new_input += ' ';
 					}
 
 					return new_input;

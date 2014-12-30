@@ -2,3 +2,7 @@
 	path = client/lib/libweb
 	url = git@github.com:timot/libweb.git
 	branch = master
+[submodule "client/lib/wysihtml"]
+	path = client/lib/wysihtml
+	url = https://github.com/Voog/wysihtml.git
+	branch = master

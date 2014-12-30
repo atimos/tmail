@@ -34,9 +34,11 @@ function keydown_event(evt) {
 		} else if ( evt.keyCode === 13 ) {
 			evt.preventDefault();
 
-			let selected = cli[_datalist].select();
-			if ( selected !== null ) {
-				update_input(cli.children[0], selected.value).then();
+			cli[_datalist].select();
+			let value = cli[_datalist].value;
+
+			if ( value !== null ) {
+				update_input(cli.children[0], value.email).then();
 			}
 		}
 	} else if ( evt.keyCode === 13 ) {
@@ -58,14 +60,9 @@ function input_event() {
 	let cli = this;
 
 	get_command(cli.children[0].value, cli.children[0].selectionStart).then(cmd => {
-		if ( cmd !== undefined && cmd.cmd !== null && cmd.cmd.sugestions !== null && cmd.arg !== null ) {
-			get_sugestions(cmd.cmd.sugestions, cmd.arg).then(result => {
-				cli[_datalist].options = result.map(item => {
-					return {
-						value: item.email,
-						name: item.name
-					};
-				});
+		if ( cmd !== undefined && cmd.focused.cmd !== null && cmd.focused.cmd.sugestions !== null && cmd.focused.arg !== null ) {
+			get_sugestions(cmd.focused.cmd.sugestions, cmd.focused.arg).then(result => {
+				cli[_datalist].options = result;
 			});
 		}
 	});
@@ -73,5 +70,5 @@ function input_event() {
 
 export default function(document) {
 	Cli.prototype.document = document;
-	window.document.registerElement('tmail-cli', {prototype: Cli.prototype});
+	window.document.registerElement('tm-cli', {prototype: Cli.prototype});
 }
