@@ -19,6 +19,10 @@ class Cli extends window.HTMLElement {
 
 	detachedCallback() {
 	}
+
+	parse(input = '', pos = 0) {
+		return get_command(input, pos);
+	}
 }
 
 function update_input(evt) {
@@ -48,9 +52,11 @@ function keydown_event(evt) {
 			which: evt.which
 		}));
 	} else if ( key === 13 ) {
-		get_command(evt.target)
+		evt.target.parentNode.parse(evt.target.value, evt.target.selectionStart)
 			.then(command => {
 				if ( command.size > 0 ) {
+					evt.target.value = '';
+
 					let [name, args] = command.entries().next().value;
 					evt.target.parentNode.dispatchEvent(new CustomEvent('command', {detail:{name: name, args: args}}));
 				}

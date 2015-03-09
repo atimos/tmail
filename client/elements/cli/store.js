@@ -6,20 +6,28 @@ let _split = Symbol('split'),
 	_pos = Symbol('pos'),
 	_search = Symbol('search');
 
-export function get_command(input) {
+export function get_command(input_value, input_cursor_pos) {
 	return get_store()
 		.then(store => {
-			let input_value = input.value,
-				input_cursor_pos = input.selectionStart;
-
 			return store.get('command').get_db_transaction()
 				.then(transaction => {
 					return transaction.range().cursor((cursor, result) => {
 						if ( cursor !== null ) {
-							let { name: name, args: args } = cursor.value;
+							let { name: name, args: args, alias: alias } = cursor.value;
 
 							if ( input_value.indexOf(name + ' ') !== 0 ) {
-								return cursor.continue();
+								let found = alias.some(alias => {
+									if ( input_value.indexOf(alias + ' ') === 0 ) {
+										input_value = name + input_value.slice(alias.length);
+										input_cursor_pos += name.length - alias.length;
+
+										return true;
+									}
+								});
+
+								if ( found === false ) {
+									return cursor.continue();
+								}
 							}
 
 							args = args
@@ -92,7 +100,7 @@ export function get_command(input) {
 }
 
 export function update_command(input, new_value) {
-	return get_command(input)
+	return get_command(input.value, input.selectionStart)
 		.then(command => {
 			if ( command.size > 0 ) {
 				let value,
@@ -121,7 +129,7 @@ export function update_command(input, new_value) {
 }
 
 export function get_sugestions(input) {
-	return get_command(input)
+	return get_command(input.value, input.selectionStart)
 		.then(command => {
 			if ( command.size > 0 ) {
 				return command.value(0)
