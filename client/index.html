@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="/js/runtime.js"></script>
+		<script src="/core/require.js?s=es5"></script>
 		<link rel="import" href="/lib/libweb/elements/datalist/datalist.html" />
 		<link rel="import" href="/elements/cli/cli.html" />
-		<link rel="import" href="/elements/email/email.html" />
+		<!--<link rel="import" href="/elements/email/email.html" />-->
 		<meta charset="utf8" />
 		<title>T-mail</title>
 		<style>
@@ -53,7 +53,7 @@
 				float: right;
 			}
 
-			lw-datalist .focused {
+			lw-datalist .selected {
 				border: 1px solid white;
 			}
 		</style>
@@ -62,7 +62,7 @@
 		<header role="hud">
 			<tm-cli></tm-cli>
 			<lw-datalist>
-				<template data-name="contact" class="contact_opt"><span>Contact</span><span data-key="email"></span><span data-key="name"></span></template>
+				<template><span data-key="type"></span><span data-key="name"></span><span data-key="value"></span></template>
 			</lw-datalist>
 			<menu>
 				<button>New</button>
@@ -73,6 +73,7 @@
 		</section>
 		<footer>
 		</footer>
-		<script>require(['js/script']);</script>
+		<input type="text" id="debug" />
+		<script defer="defer" src="/js/script.js?s=es6"></script>
 	</body>
 </html>

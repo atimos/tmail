@@ -1,34 +1,40 @@
 'use strict';
 
-import {get_instance as get_db_instance} from '../lib/libweb/db/store';
+import load_store from '../lib/libweb/db/store';
 
-let cfg = {
-	name: 'tmail',
-	version: 1,
-	stores: [
-		{name: 'contact', options: {keyPath: 'uuid', autoIncrement: false}, index: [
-			{name: 'email', unique: false},
-			{name: 'synced', unique: false}
-		]},
-		{name: 'email', options: {keyPath: 'uuid', autoIncrement: false}, index: [
-			{name: 'subject', unique: false},
-			{name: 'body', unique: true},
-			{name: 'from', unique: false},
-			{name: 'to', unique: false},
-			{name: 'cc', unique: false},
-			{name: 'bcc', unique: false},
-			{name: 'tags', unique: false},
-			{name: 'synced', unique: false}
-		]},
-		{name: 'content', options: {keyPath: 'uuid', autoIncrement: false}, index: [{name: 'synced', unique: false}]},
-		{name: 'command', options: {keyPath: 'name', autoIncrement: false}}
-	],
-	fulltext: [
-		{name: 'contact', ref: 'uuid', fields: ['email', 'name']},
-		{name: 'email', ref: 'uuid', fields: ['subject']}
-	]
-};
+let store = null;
 
-export function get_instance() {
-	return get_db_instance(cfg);
+export default function() {
+	return new Promise((resolve, reject) => {
+		if ( store !== null ) {
+			resolve(store);
+		} else {
+			load_store('tmail', 4)
+				.store('command', {keyPath: 'uuid', autoIncrement: false, index: [
+					{name: 'name', unique: false},
+				]})
+				.store('contact', {keyPath: 'uuid', autoIncrement: false, index: [
+					{name: 'email', unique: false},
+					{name: 'synced', unique: false}
+				]})
+				.store('email', {keyPath: 'uuid', autoIncrement: false, index: [
+					{name: 'subject', unique: false},
+					{name: 'body', unique: true},
+					{name: 'from', unique: false},
+					{name: 'to', unique: false},
+					{name: 'cc', unique: false},
+					{name: 'bcc', unique: false},
+					{name: 'tags', unique: false},
+					{name: 'synced', unique: false}
+				]})
+				.index('contact',  {ref: 'uuid', fields: [{name: 'email'}, {name: 'name'}]})
+				.index('email',  {ref: 'uuid', fields: [{name: 'subject'}]})
+				.then(instance => {
+					store = instance;
+					return store;
+				})
+				.then(resolve, reject);
+		}
+	});
 }
+

@@ -1,74 +1,76 @@
 'use strict';
+import {get_sugestions, get_command, update_command} from './store';
+//import ty from 'then-yield';
 
-import {get_sugestions, get_command, update_input} from './store';
+let _dl = Symbol('datalist');
+var self_document = window.document.currentScript.ownerDocument;
 
-let _datalist = '_datalist_';
-
-class Cli extends window.HTMLDivElement {
+class Cli extends window.HTMLElement {
 	createdCallback() {
-		this.appendChild(this.document.querySelector('template').content.cloneNode(true));
+		this.appendChild(self_document.querySelector('template').content.cloneNode(true));
+		this.children[0].addEventListener('keydown', keydown_event);
+		this.children[0].addEventListener('input', input_event);
 	}
 
 	attachedCallback() {
-		this[_datalist] = this.nextElementSibling;
-		this.is_attached = true;
-
-		this.children[0].addEventListener('keydown', keydown_event.bind(this));
-		this.children[0].addEventListener('input', input_event.bind(this));
+		this[_dl] = this.nextElementSibling;
+		this[_dl].addEventListener('select', update_input);
 	}
 
 	detachedCallback() {
-		this.children[0].removeEventListener('keydown', keydown_event.bind(this));
-		this.children[0].removeEventListener('input', input_event.bind(this));
 	}
+}
+
+function update_input(evt) {
+	update_command(evt.explicitOriginalTarget, evt.detail.value).then();
 }
 
 function keydown_event(evt) {
-	let cli = this;
+	let dl = evt.target.parentNode[_dl],
+		key = evt.keyCode;
 
-	if ( cli[_datalist].hidden !== true ) {
-		if ( evt.keyCode === 38 || ( evt.keyCode === 9 && evt.shiftKey === true ) ) {
-			cli[_datalist].previous();
-		} else if ( evt.keyCode === 40 || ( evt.keyCode === 9 && evt.shiftKey === false ) ) {
-			cli[_datalist].next();
-		} else if ( evt.keyCode === 13 ) {
-			evt.preventDefault();
-
-			cli[_datalist].select();
-			let value = cli[_datalist].value;
-
-			if ( value !== null ) {
-				update_input(cli.children[0], value.email).then();
-			}
-		}
-	} else if ( evt.keyCode === 13 ) {
-		get_command(cli.children[0].value, cli.children[0].selectionStart).then(cmd => {
-			if ( cmd !== undefined ) {
-				this.dispatchEvent(new CustomEvent('command', {
-					detail: {
-						value: cmd
-					},
-					bubbles: true,
-					cancelable: true
-				}));
-			}
-		});
+	if ( dl !== undefined && ( key === 38 || key === 40 || key === 9 || ( ( key === 13 || key === 27 ) && dl.options.length > 0 ) ) ) {
+		evt.preventDefault();
+		dl.dispatchEvent(new window.KeyboardEvent('keydown', {
+			bubbles : evt.bubbles,
+			cancelable : evt.cancelable,
+			key: evt.key,
+			code: evt.code,
+			location: evt.location,
+			ctrlKey: evt.ctrlKey,
+			shiftKey: evt.shiftKey,
+			altKey: evt.altKey,
+			metaKey: evt.metaKey,
+			repeat: evt.repeat,
+			isComposing: evt.isComposing,
+			charCode: evt.charCode,
+			keyCode: evt.keyCode,
+			which: evt.which
+		}));
+	} else if ( key === 13 ) {
+		get_command(evt.target)
+			.then(command => {
+				if ( command.size > 0 ) {
+					let [name, args] = command.entries().next().value;
+					evt.target.parentNode.dispatchEvent(new CustomEvent('command', {detail:{name: name, args: args}}));
+				}
+			});
 	}
 }
 
-function input_event() {
-	let cli = this;
+function input_event(evt) {
+	get_sugestions(evt.target)
+		.then(sugestions => {
+			evt.target.parentNode[_dl].options = sugestions
+				.map(item => {
+					let { type: type, value: value } = item;
 
-	get_command(cli.children[0].value, cli.children[0].selectionStart).then(cmd => {
-		if ( cmd !== undefined && cmd.focused.cmd !== null && cmd.focused.cmd.sugestions !== null && cmd.focused.arg !== null ) {
-			get_sugestions(cmd.focused.cmd.sugestions, cmd.focused.arg).then(result => {
-				cli[_datalist].options = result;
-			});
-		}
-	});
+					switch ( type ) {
+						case 'contact':
+							return {name: value.name, value: value.email};
+					}
+				});
+		});
 }
 
-export default function(document) {
-	Cli.prototype.document = document;
-	window.document.registerElement('tm-cli', {prototype: Cli.prototype});
-}
+window.document.registerElement('tm-cli', {prototype: Cli.prototype});

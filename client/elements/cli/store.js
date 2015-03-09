@@ -1,152 +1,194 @@
 'use strict';
 
-import {get_instance as get_db_instance} from '../../js/store';
+import get_store from '../../js/store';
 
-let _hdata = '_hdata_';
+let _split = Symbol('split'),
+	_pos = Symbol('pos'),
+	_search = Symbol('search');
 
-export function get_sugestions(store_list, query) {
-	return get_db_instance().then(db => {
-		return Promise.all(store_list.map(store_name => {
-			return db.store(store_name).search(query).then(result => {
-				return result.map(item => {
-					item.template = store_name;
-					return item;
+export function get_command(input) {
+	return get_store()
+		.then(store => {
+			let input_value = input.value,
+				input_cursor_pos = input.selectionStart;
+
+			return store.get('command').get_db_transaction()
+				.then(transaction => {
+					return transaction.range().cursor((cursor, result) => {
+						if ( cursor !== null ) {
+							let { name: name, args: args } = cursor.value;
+
+							if ( input_value.indexOf(name + ' ') !== 0 ) {
+								return cursor.continue();
+							}
+
+							args = args
+								.map(arg_cfg => {
+									let start_pos = input_value.indexOf(' ' + arg_cfg.name + ' ');
+
+									if ( start_pos > -1 ) {
+										return Object.assign({start_pos: start_pos + 1}, arg_cfg);
+									} else {
+										return false;
+									}
+								})
+								.filter(item => { return (item !== false);})
+								.sort((a, b) => { return a.start_pos - b.start_pos;})
+								.reduce((args, arg) => {
+									if ( args.length === 0 || args[args.length - 1].last_arg !== true ) {
+										args.push(arg);
+									}
+									return args;
+								}, [])
+								.map((arg, index, list) => {
+									let value_range = [arg.start_pos + arg.name.length + 1],
+										current_pos = value_range[0],
+										split_str_length = 0,
+										value;
+
+									if ( index < list.length - 1 ) {
+										value_range.push(list[index + 1].start_pos - 1);
+									} else {
+										value_range.push(input_value.length);
+									}
+
+									if ( Object.prototype.toString.call(arg.split) === '[object String]' ) {
+										value = input_value.slice(value_range[0], value_range[1]).split(arg.split);
+										split_str_length = arg.split.length;
+									} else {
+										value = [input_value.slice(value_range[0], value_range[1])];
+									}
+
+									value = value
+										.map(value => {
+											let current_value = false, value_start = current_pos;
+
+											if ( input_cursor_pos > current_pos && input_cursor_pos <= current_pos + value.length ) {
+												current_value = true;
+											}
+
+											current_pos += value.length + split_str_length;
+
+											return {
+												[_pos]: value_start,
+												value: value.trim(),
+												current: current_value
+											};
+										});
+
+									return {
+										name: arg.name,
+										value: value,
+										[_search]: arg.search,
+										[_split]: arg.split
+									};
+								});
+
+							result.set(name, args);
+						}
+					});
 				});
-			});
-		}));
-	}).then(result_list => {
-		return result_list.reduce((result_list, result) => {
-			return result_list.concat(result.reduce((list, item) => {
-				list.push(item);
-				return list;
-			}, []));
-		}, []).sort((a, b) => {
-			if ( a.score < b.score ) {
-				return 1;
-			} else if ( a.score > b.score ) {
-				return -1;
-			} else {
-				return 0;
-			}
-		}).slice(0, 10);
-	});
+		});
 }
 
-export function get_command(input, cursor_pos) {
-	return get_db_instance().then(db => {
-		return new Promise((resolve, reject) => {
-			return db.store('command').range().then(resolve, reject);
+export function update_command(input, new_value) {
+	return get_command(input)
+		.then(command => {
+			if ( command.size > 0 ) {
+				let value,
+					input_cursor_pos = input.selectionStart,
+					[name, args] = command.entries().next().value;
+
+				value =  name + ' ' + args
+					.map(arg => {
+						return arg.name + ' ' +  arg.value
+							.map((value, index, list) => {
+								if ( value.current === true ) {
+									input_cursor_pos = value[_pos] + new_value.length + arg[_split].length;
+									return new_value;
+								} else {
+									return value.value;
+								}
+							})
+							.join(arg[_split] + ' ');
+					})
+					.join(' ');
+
+				input.value = value;
+				input.setSelectionRange(input_cursor_pos, input_cursor_pos);
+			}
 		});
-	}).then(cmd_group_list => {
-		return cmd_group_list.filter(cmd_group_cfg => {
-			return (input.indexOf(cmd_group_cfg.name) === 0);
-		}).map(cmd_cfg => {
-			let focused_cmd = null, focused_arg = null, last_cmd_index = cmd_cfg.cmd_list.length - 1;
+}
 
-			let cmd_list = cmd_cfg.cmd_list.map(cfg => {
-				let start = input.indexOf(cfg.name + ' ');
-
-				if ( start > -1 && input.slice(start - 1, start) === ' ') {
-					return Object.assign({start: start}, cfg);
-				}
-			}).filter(cmd => {
-				return cmd !== undefined;
-			}).sort((a, b) => {
-				return a.start - b.start;
-			}).filter((cmd, index) => {
-				if ( index < last_cmd_index && cmd.last_cmd === true ) {
-					last_cmd_index = index;
-				}
-
-				return index <= last_cmd_index;
-			}).map((cmd, index, list) => {
-				let start = cmd.start + (cmd.name + ' ').length,
-					end = (index === list.length - 1 ? input.length : list[index + 1].start),
-					args = input.slice(start, end);
-
-				if ( cmd.split_args !== undefined && cmd.split_args !== false ) {
-					let arg_start = start;
-
-					cmd.args = args.split(cmd.split_args).map(arg => {
-						let focused = (cursor_pos >= arg_start && cursor_pos <= arg_start + arg.length);
-
-						if ( focused ) {
-							focused_cmd = cmd;
-							focused_arg = arg;
+export function get_sugestions(input) {
+	return get_command(input)
+		.then(command => {
+			if ( command.size > 0 ) {
+				return command.value(0)
+					.map(arg => {
+						if ( !Array.isArray(arg[_search]) ) {
+							return false;
 						}
 
-						arg_start += arg.length + cmd.split_args.length;
+						arg.value = arg.value
+							.map(value => {
+								if ( value.current === true ) {
+									return value.value;
+								} else {
+									return false;
+								}
+							})
+							.filter(item => { return item !== false; })
+							.shift();
 
-						return {
-							value: arg.trim(),
-							focused: focused
-						};
-					});
-				} else {
-					cmd.args = [{
-						value: args.trim(),
-						focused: (cursor_pos >= start && cursor_pos <= end)
-					}];
-				}
+						if ( arg.value === undefined ) {
+							return false;
+						}
 
-				return {
-					name: cmd.name,
-					args: cmd.args,
-					sugestions: (Array.isArray(cmd.sugestions)? cmd.sugestions : null),
-					[_hdata]: {
-						split_args: cmd.split_args || false
-					}
-				};
-			});
+						return arg;
+					})
+					.filter(arg => {
+						return arg;
+					})
+					.shift();
+			}
+		})
+		.then(query => {
+			if ( query === undefined ) {
+				return [];
+			}
 
-			return {
-				name: cmd_cfg.name,
-				list: cmd_list,
-				focused: {
-					cmd: focused_cmd,
-					arg: focused_arg
-				}
-			};
+			return get_store()
+				.then(store => {
+					return Promise.all(query[_search]
+						.map(store_name => {
+							return store.get(store_name).search(query.value)
+								.then(result => {
+									result.type = store_name;
+									return result;
+								});
+						}));
+				})
+				.then(result => {
+					result = result
+						.reduce((list, store) => {
+							store.forEach(item => {
+								list.push({type: store.type, value: item.value});
+							});
+
+							return list;
+						}, []);
+
+					result
+						.sort((a, b) => {
+							return b.score - a.score;
+						});
+
+					return result
+						.map(item => {
+							return item;
+						})
+						.slice(0, 5);
+				});
 		});
-	}).then(cmd_list => {
-		return cmd_list.value(0);
-	});
-}
-
-export function update_input(input, new_value) {
-	if ( new_value !== undefined ) {
-		return get_command(input.value, input.selectionStart).then(cmd => {
-			let cursor_pos = 0;
-
-			input.value = cmd.list.reduce((new_input, cmd) => {
-				new_input = cmd.args.reduce((new_input, arg) => {
-					if ( arg.focused === true ) {
-						new_input += new_value;
-						cursor_pos = new_input.length + new_value.length;
-					} else {
-						new_input += arg.value;
-					}
-
-					if ( cmd[_hdata].split_args && arg.value.length > 0 ) {
-						new_input += cmd[_hdata].split_args;
-						new_input += ' ';
-					}
-
-					return new_input;
-				}, new_input + cmd.name + ' ');
-
-				if ( cmd.args.length > 0 && cmd[_hdata].split_args ) {
-					new_input = new_input.slice(0, -(cmd[_hdata].split_args.length + 1));
-				}
-
-				return new_input + ' ';
-			}, cmd.name + ' ').slice(0, -1);
-
-			input.setSelectionRange(cursor_pos, cursor_pos);
-		});
-	} else {
-		return new Promise(resolve => {
-			resolve();
-		});
-	}
 }

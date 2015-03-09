@@ -1,39 +1,34 @@
 'use strict';
 
-import {get_instance as get_db_instance} from './store';
+import get_store from './store';
 
-let active = true;
+get_store().then(store => {
+	function fetch(name) {
+		return new Promise((resolve, reject) => {
+			let req = new XMLHttpRequest();
 
-function fetch(name) {
-	return new Promise((resolve, reject) => {
-		if ( active === true ) {
-			let contact_req = new XMLHttpRequest();
+			req.open('get', '/data/' + name + '.json');
+			req.responseType = "json";
 
-			contact_req.open('get', '/data/' + name + '.json');
-			contact_req.responseType = "json";
-
-			contact_req.addEventListener('load', result => {
-				add_items(name, result.target.response).then(resolve, reject);
+			req.addEventListener('load', result => {
+				store.get(name).put(result.target.response).then(resolve, reject);
 			});
 
-			contact_req.send();
+			req.send();
+		});
+	}
+
+	store.get('contact').count().then(count => {
+		if ( count > 0 ) {
+			return store.get('contact').rebuild_index();
+		} else {
+			return fetch('contact');
 		}
 	});
-}
 
-function add_items(name, value_list) {
-	return get_db_instance().then(db => {
-		return db.store(name).put(value_list);
+	store.get('command').count().then(count => {
+		if ( count === 0 ) {
+			return fetch('command');
+		}
 	});
-}
-
-/*
-fetch('command').then();
-console.time('sync command');
-fetch('command').then(() => {
-	console.timeEnd('sync command');
-}, err => {
-	console.log(err);
-	console.timeEnd('sync command');
 });
-*/

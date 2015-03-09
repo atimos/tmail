@@ -3,6 +3,10 @@
 import './sync';
 
 let cli = document.querySelector('tm-cli');
+cli.addEventListener('command', evt => {
+	console.log(evt.detail);
+});
+/*
 let email = document.querySelector('tm-email');
 
 email = {clear: () => {}};
@@ -27,3 +31,4 @@ cli.addEventListener('command', evt => {
 
 	console.log(email);
 });
+*/
