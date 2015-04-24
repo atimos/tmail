@@ -2,9 +2,11 @@
 <html>
 	<head>
 		<script src="/core/require.js?s=es5"></script>
+<!--
 		<link rel="import" href="/lib/libweb/elements/datalist/datalist.html" />
 		<link rel="import" href="/elements/cli/cli.html" />
-		<!--<link rel="import" href="/elements/email/email.html" />-->
+		<link rel="import" href="/elements/email/email.html" />
+-->
 		<meta charset="utf8" />
 		<title>T-mail</title>
 		<style>
@@ -62,15 +64,17 @@
 		<header role="hud">
 			<tm-cli></tm-cli>
 			<lw-datalist>
-				<template><span data-key="type"></span><span data-key="name"></span><span data-key="value"></span></template>
+				<template>
+					<optgroup data-label="name">
+						<option><span data-key="type"></span><span data-key="email"></span></option>
+					</optgroup>
+				</template>
 			</lw-datalist>
 			<menu>
 				<button>New</button>
 			</menu>
 		</header>
-		<section>
-			<tm-email></tm-email>
-		</section>
+		<tm-email></tm-email>
 		<footer>
 		</footer>
 		<input type="text" id="debug" />

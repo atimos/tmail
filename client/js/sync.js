@@ -11,24 +11,37 @@ get_store().then(store => {
 			req.responseType = "json";
 
 			req.addEventListener('load', result => {
-				store.get(name).put(result.target.response).then(resolve, reject);
+				store(name, 'readwrite').then(store => {
+					store.put(result.target.response).then(resolve, reject);
+				});
 			});
 
 			req.send();
 		});
 	}
 
-	store.get('contact').count().then(count => {
-		if ( count > 0 ) {
-			return store.get('contact').rebuild_index();
-		} else {
-			return fetch('contact');
-		}
-	});
+	/*
+	store(['contact', 'command']).then(store_map => {
+		for ( let entry of store_map.entries() ) {
+			let [name, store] = entry;
 
-	store.get('command').count().then(count => {
-		if ( count === 0 ) {
-			return fetch('command');
+			store.range().count().then(count => {
+				if ( count === 0 ) {
+					fetch(name).then(() => {
+						console.log(name + ' done');
+					});
+				}
+			});
 		}
 	});
+	setTimeout(() => {
+		store('command').then(store => {
+			store.search('write').then(result => {
+				console.log(result.limit(1).toArray());
+			});
+		}, err => {
+			console.log(err);
+		});
+	}, 5000);
+   */
 });

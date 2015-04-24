@@ -2,14 +2,36 @@
 
 import './sync';
 
+/*
 let cli = document.querySelector('tm-cli');
+let email = document.querySelector('tm-email');
 
 cli.addEventListener('command', evt => {
-	console.log(evt.detail);
+	if ( evt.detail.name === 'write' ) {
+		email.clear();
+		email.write(evt.detail.args
+			.map(item => {
+				return {name: item.name, value: item.value.map(item => {
+					return item.value;
+				})};
+			})
+			.reduce((object, item) => {
+				object[item.name] = item.value;
+				return object;
+			}, {}));
+	}
 });
 
-/*
-let email = document.querySelector('tm-email');
+setTimeout(() => {
+	document.querySelector('lw-datalist').options = [
+		{
+			name: 'foo',
+			options: [
+				{email: 'foo@foo.foo'}
+			]
+		}
+	];
+}, 1000);
 
 email = {clear: () => {}};
 

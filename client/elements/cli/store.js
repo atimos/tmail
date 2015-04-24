@@ -185,9 +185,7 @@ export function get_sugestions(input) {
 							});
 
 							return list;
-						}, []);
-
-					result
+						}, [])
 						.sort((a, b) => {
 							return b.score - a.score;
 						});

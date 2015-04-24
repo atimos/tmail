@@ -1,9 +1,8 @@
 'use strict';
 import {get_sugestions, get_command, update_command} from './store';
-//import ty from 'then-yield';
 
-let _dl = Symbol('datalist');
-var self_document = window.document.currentScript.ownerDocument;
+let _dl = Symbol('datalist'),
+	self_document = window.document.currentScript.ownerDocument;
 
 class Cli extends window.HTMLElement {
 	createdCallback() {
@@ -54,6 +53,7 @@ function keydown_event(evt) {
 	} else if ( key === 13 ) {
 		evt.target.parentNode.parse(evt.target.value, evt.target.selectionStart)
 			.then(command => {
+				console.log(command);
 				if ( command.size > 0 ) {
 					evt.target.value = '';
 
@@ -73,7 +73,7 @@ function input_event(evt) {
 
 					switch ( type ) {
 						case 'contact':
-							return {name: value.name, value: value.email};
+							return value;
 					}
 				});
 		});
