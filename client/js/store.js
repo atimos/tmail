@@ -6,11 +6,9 @@ let store;
 
 export default function() {
 	if ( store !== undefined ) {
-		return new Promise(resolve => {
-			resolve(store);
-		});
+		return Promise.resolve(store);
 	} else {
-		return load_store('tmail', 'idx', 6)
+		return load_store('tmail', 'idx', 1)
 			.store('command', {keyPath: 'uuid', autoIncrement: false, index: [
 				{name: 'name', unique: false},
 			]})
@@ -34,13 +32,6 @@ export default function() {
 			.index('contact',  {ref: 'uuid', fields: [{name: 'email'}, {name: 'name'}], store: 'contact'})
 			.index('email',  {ref: 'uuid', fields: [{name: 'subject'}], store: 'email'})
 			.then(instance => {
-				instance('command')
-					.then(store => {
-						store.search('write')
-							.then(result => {
-								console.log(result.size());
-							});
-					});
 				return store = instance;
 			});
 	}

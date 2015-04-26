@@ -11,37 +11,27 @@ get_store().then(store => {
 			req.responseType = "json";
 
 			req.addEventListener('load', result => {
-				store(name, 'readwrite').then(store => {
-					store.put(result.target.response).then(resolve, reject);
-				});
+				store.get(name, 'readwrite').put(result.target.response).then(resolve, reject);
 			});
 
 			req.send();
 		});
 	}
 
-	/*
-	store(['contact', 'command']).then(store_map => {
-		for ( let entry of store_map.entries() ) {
-			let [name, store] = entry;
+	store.raw_db.get(['command', 'contact'])
+		.then(store => {
+			let work_queue = [];
 
-			store.range().count().then(count => {
-				if ( count === 0 ) {
-					fetch(name).then(() => {
-						console.log(name + ' done');
-					});
-				}
-			});
-		}
-	});
-	setTimeout(() => {
-		store('command').then(store => {
-			store.search('write').then(result => {
-				console.log(result.limit(1).toArray());
-			});
-		}, err => {
-			console.log(err);
+			for ( let entry of store.entries() ) {
+				let [name, store] = entry;
+
+				work_queue.push(store.range().count()
+					.then(result => {
+						if ( result === 0 ) {
+							return fetch(name);
+						}
+					}));
+			}
+			return Promise.all(work_queue);
 		});
-	}, 5000);
-   */
 });
