@@ -2,10 +2,35 @@
 
 import get_store from '../../js/store';
 
-let _split = Symbol('split'),
-	_pos = Symbol('pos'),
-	_search = Symbol('search');
+let _name = Symbol('name'),
+	_arg_list = Symbol('cmd_list'),
+	_arg = Symbol('cmd'),
+	_value = Symbol('attr');
 
+class Command {
+	constructor(name, cmd_list, cmd, attr) {
+		this[_name] = name;
+		this[_arg_list] = cmd_list;
+		this[_arg] = cmd;
+		this[_value] = attr;
+	}
+}
+
+export default function(str, caret) {
+	get_store()
+		.then(store => {
+			return store.get('command').range()
+				.then(range => {
+					console.log(range);
+				});
+		})
+		.catch(err => {
+			console.log(err);
+		});
+	return new Command();
+}
+
+/*
 export function get_command(input_value, input_cursor_pos) {
 	return get_store()
 		.then(store => {
@@ -198,3 +223,4 @@ export function get_sugestions(input) {
 				});
 		});
 }
+*/

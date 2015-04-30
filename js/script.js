@@ -3,6 +3,39 @@
 import './sync';
 
 /*
+let data = {
+	group: [
+		{
+			value: {
+				name: 'foo'
+			},
+			children: {
+				group: [
+					{value: { email: 'bar'}},
+					{value: { email: 'bar'}},
+					{value: { email: 'bar'}}
+				]
+			}
+		},
+		{
+			value: {
+				name: 'foo'
+			},
+			children: {
+				group: [
+					{value: { email: 'bar'}},
+					{value: { email: 'bar'}},
+					{value: { email: 'bar'}}
+				]
+			}
+		}
+	]
+};
+
+let node = render_template(document.querySelector('lw-datalist > template'), data);
+document.body.appendChild(node);
+
+let datalist = document.querySelector('lw-datalist');
 let cli = document.querySelector('tm-cli');
 let email = document.querySelector('tm-email');
 

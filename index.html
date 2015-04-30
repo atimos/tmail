@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="/core/require.js?s=es5"></script>
-<!--
+		<script src="/core/require.js"></script>
 		<link rel="import" href="/lib/libweb/elements/datalist/datalist.html" />
+		<!--
 		<link rel="import" href="/elements/cli/cli.html" />
 		<link rel="import" href="/elements/email/email.html" />
 -->
@@ -46,17 +46,8 @@
 				width: 100%;
 			}
 
-			lw-datalist option span {
-				display: inline-block;
-				padding: 0 0.5em 0.3em 0.5em;
-			}
-
-			lw-datalist option span:nth-of-type(1) {
-				float: right;
-			}
-
 			lw-datalist .selected {
-				border: 1px solid white;
+				background: #666;
 			}
 		</style>
 	</head>
@@ -65,8 +56,11 @@
 			<tm-cli></tm-cli>
 			<lw-datalist>
 				<template>
-					<optgroup data-label="name">
-						<option><span data-key="type"></span><span data-key="email"></span></option>
+					<optgroup data-tpl-attr="label:name" data-tpl-rel="group">
+						<template data-tpl-rel="option">
+							<option data-tpl-attr="value:email" data-tpl="email"><span data-tpl-val="email"></span>email</option>
+							<option data-tpl-attr="value:email" data-tpl="contact"><span data-tpl-val="email"></span>contact</option>
+						</template>
 					</optgroup>
 				</template>
 			</lw-datalist>
@@ -78,6 +72,8 @@
 		<footer>
 		</footer>
 		<input type="text" id="debug" />
-		<script defer="defer" src="/js/script.js?s=es6"></script>
+		<script>
+			window.require('/js/script');
+		</script>
 	</body>
 </html>

@@ -1,33 +1,26 @@
 'use strict';
-import {get_sugestions, get_command, update_command} from './store';
+import parse from './command';
+
+parse('w to alex@timot.se subject moegel', 18);
 
 let _dl = Symbol('datalist'),
 	self_document = window.document.currentScript.ownerDocument;
 
-class Cli extends window.HTMLElement {
+class Cli extends window.HTMLInputElement {
 	createdCallback() {
-		this.appendChild(self_document.querySelector('template').content.cloneNode(true));
-		this.children[0].addEventListener('keydown', keydown_event);
-		this.children[0].addEventListener('input', input_event);
 	}
 
 	attachedCallback() {
-		this[_dl] = this.nextElementSibling;
-		this[_dl].addEventListener('select', update_input);
 	}
 
 	detachedCallback() {
 	}
 
-	parse(input = '', pos = 0) {
-		return get_command(input, pos);
+	command() {
+		return parse(this.children[0].value, this.children[0].selectionStart);
 	}
 }
-
-function update_input(evt) {
-	update_command(evt.explicitOriginalTarget, evt.detail.value).then();
-}
-
+/*
 function keydown_event(evt) {
 	let dl = evt.target.parentNode[_dl],
 		key = evt.keyCode;
@@ -78,5 +71,6 @@ function input_event(evt) {
 				});
 		});
 }
+*/
 
 window.document.registerElement('tm-cli', {prototype: Cli.prototype});
