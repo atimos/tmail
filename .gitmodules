@@ -1,8 +1,8 @@
-[submodule "lib/libweb"]
-	path = lib/libweb
-	url = https://github.com/ttimott/libweb
-	branch = master
 [submodule "lib/wysihtml"]
 	path = lib/wysihtml
 	url = https://github.com/Voog/wysihtml.git
+	branch = master
+[submodule "lib/libweb"]
+	path = lib/libweb
+	url = git@github.com:ttimott/libweb.git
 	branch = master
