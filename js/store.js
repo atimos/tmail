@@ -8,16 +8,16 @@ export default function() {
 	if ( store !== undefined ) {
 		return Promise.resolve(store);
 	} else {
-		return load_store('tmail', 'idx', 1)
-			.store('command', {keyPath: 'uuid', autoIncrement: false, index: [
+		return load_store('tmail', 'idx', 2)
+			.store('command', {key: 'uuid', index: [
 				{name: 'name', unique: false},
 			]})
-			.store('contact', {keyPath: 'uuid', autoIncrement: false, index: [
+			.store('contact', {key: 'uuid', key_gen: 'uuid', index: [
 				{name: 'email', unique: false, multiEntry: true},
 				{name: 'alias', unique: false, multiEntry: true},
 				{name: 'synced', unique: false}
 			]})
-			.store('email', {keyPath: 'uuid', autoIncrement: false, index: [
+			.store('email', {keyPath: 'uuid', index: [
 				{name: 'subject', unique: false},
 				{name: 'body', unique: true},
 				{name: 'from', unique: false},
@@ -27,7 +27,7 @@ export default function() {
 				{name: 'tags', unique: false},
 				{name: 'synced', unique: false}
 			]})
-			.store('idx', {keyPath: 'name', autoIncrement: false})
+			.store('idx', {key: 'name'})
 			.index('command',  {ref: 'uuid', fields: [{name: 'name'}], store: 'command'})
 			.index('contact',  {ref: 'uuid', fields: [{name: 'email'}, {name: 'name'}], store: 'contact'})
 			.index('email',  {ref: 'uuid', fields: [{name: 'subject'}], store: 'email'})
