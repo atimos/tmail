@@ -11,7 +11,13 @@ get_store().then(store => {
 			req.responseType = "json";
 
 			req.addEventListener('load', result => {
-				store.get(name, 'readwrite').put(result.target.response).then(resolve, reject);
+				console.time('sync: ' + name);
+
+				store.get(name, 'readwrite').put(result.target.response)
+					.then(() => {
+						console.timeEnd('sync: ' + name);
+					})
+					.then(resolve, reject);
 			});
 
 			req.send();
