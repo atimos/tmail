@@ -1,33 +1,89 @@
 'use strict';
 import parse from './command';
 
-parse('w to alex@timot.se subject moegel', 18);
-
-let _dl = Symbol('datalist'),
+let _sugestions = Symbol('sugestions'),
+	_timeout = Symbol('timeout'),
 	self_document = window.document.currentScript.ownerDocument;
 
 class Cli extends window.HTMLInputElement {
 	createdCallback() {
+		this.appendChild(self_document.querySelector('template').content.cloneNode(true));
 	}
 
 	attachedCallback() {
+		this[_sugestions] = this.nextElementSibling;
+		this[_sugestions].addEventListener('select', select);
+		this.firstElementChild.addEventListener('input', input);
+		this.firstElementChild.addEventListener('keydown', key_press);
 	}
 
 	detachedCallback() {
+		this[_sugestions].removeEventListener('select', select);
+		this.firstElementChild.removeEventListener('input', input);
+		this.firstElementChild.removeEventListener('keyup', key_press);
 	}
 
 	command() {
 		return parse(this.children[0].value, this.children[0].selectionStart);
 	}
 }
-/*
-function keydown_event(evt) {
-	let dl = evt.target.parentNode[_dl],
-		key = evt.keyCode;
 
-	if ( dl !== undefined && ( key === 38 || key === 40 || key === 9 || ( ( key === 13 || key === 27 ) && dl.options.length > 0 ) ) ) {
+function select(evt) {
+	let input = evt.explicitOriginalTarget,
+		cli = input.parentNode;
+
+	cli.command()
+		.then(command => {
+			if (command !== null ) {
+				let caret;
+
+				switch ( evt.detail.tpl ) {
+					case 'contact':
+						command.focused_value = evt.detail.value.email;
+						break;
+				}
+
+				caret = command.caret;
+
+				input.value = command;
+				input.setSelectionRange(caret, caret);
+			}
+		});
+
+}
+
+function input(evt) {
+	let cli = evt.target.parentNode;
+
+	clearTimeout(cli[_timeout]);
+
+	cli[_timeout] = setTimeout(() => {
+		parse(evt.target.value, evt.target.selectionStart)
+			.then(command => {
+				if ( command !== null ) {
+					command.get_sugestions().then(result => {
+						cli[_sugestions].options = result
+							.map(item => {
+								return {
+									value: {name: item.name},
+									options: item.email.map(email => {
+										return {email: email, tpl: item.type};
+									})
+								};
+							}).toArray();
+					});
+				}
+			});
+	}, 300);
+}
+
+function key_press(evt) {
+	let cli = evt.target.parentNode,
+		sugestions = cli[_sugestions];
+
+	if ( ['Tab', 'ArrowUp', 'ArrowDown', 'Escape'].indexOf(evt.key) !== -1 || ( evt.keyCode === 9 && evt.shiftKey ) || ( evt.key === 'Enter' && sugestions.value !== undefined ) ) {
 		evt.preventDefault();
-		dl.dispatchEvent(new window.KeyboardEvent('keydown', {
+		sugestions.dispatchEvent(new window.KeyboardEvent('keydown', {
 			bubbles : evt.bubbles,
 			cancelable : evt.cancelable,
 			key: evt.key,
@@ -43,34 +99,14 @@ function keydown_event(evt) {
 			keyCode: evt.keyCode,
 			which: evt.which
 		}));
-	} else if ( key === 13 ) {
-		evt.target.parentNode.parse(evt.target.value, evt.target.selectionStart)
+	} else if ( evt.key === 'Enter' ) {
+		cli.command()
 			.then(command => {
-				console.log(command);
-				if ( command.size > 0 ) {
-					evt.target.value = '';
-
-					let [name, args] = command.entries().next().value;
-					evt.target.parentNode.dispatchEvent(new CustomEvent('command', {detail:{name: name, args: args}}));
+				if ( command !== null ) {
+					cli.dispatchEvent(new CustomEvent('command', {detail:command}));
 				}
 			});
 	}
 }
-
-function input_event(evt) {
-	get_sugestions(evt.target)
-		.then(sugestions => {
-			evt.target.parentNode[_dl].options = sugestions
-				.map(item => {
-					let { type: type, value: value } = item;
-
-					switch ( type ) {
-						case 'contact':
-							return value;
-					}
-				});
-		});
-}
-*/
 
 window.document.registerElement('tm-cli', {prototype: Cli.prototype});
